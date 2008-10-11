@@ -15,7 +15,7 @@ use Test::More;
 
 use Moose;
 use Framework::Redmash (
-    qw/base Standard/
+    qw/base Standard name test/
 );
 
 ok(__PACKAGE__->redmash_meta);

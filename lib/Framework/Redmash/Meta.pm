@@ -12,6 +12,11 @@ sub kit_meta {
     return shift->kit_class->meta;
 }
 
+has base => qw/is rw isa Str/;
+has base_class => qw/is rw isa Str/;
+
+has name => qw/is rw isa Str/;
+
 has config_default => qw/is ro isa Maybe[HashRef]/;
 has manifest => qw/is ro isa Framework::Redmash::Manifest/, default => sub {
     return Framework::Redmash::Manifest->new;
@@ -21,8 +26,15 @@ sub configure {
     my $self = shift;
     my %given = @_;
 
+    my $kit_class = $self->kit_class;
+
+    my $name = $given{name} or croak "Wasn't given name (when creating $kit_class)";
+    $self->name($name);
+
     my $base = $given{base} ||= 'Standard';
+    $self->base($base);
     my $base_class = "Framework::Redmash::Base::$base";
+    $self->base_class($base_class);
 
     # Should extend from base class object class (::Object)
     # $self->for_class->meta->superclasses($base_class);
