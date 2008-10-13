@@ -17,6 +17,10 @@ sub SCAFFOLD {
     Scaffold->extends($meta => 'Framework::Redmash::UI::Object');
     Scaffold->has($meta => kit => qw/is ro required 1/, isa => $kit_class);
 
+    $meta->add_method($kit_class->redmash_meta->name => sub {
+        return $_[0]->kit;
+    });
+
 #    my $redmash_meta = shift;
 #    my %given = @_;
 

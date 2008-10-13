@@ -27,7 +27,7 @@ sub _build_config_default {
 has _config => qw/is ro lazy_build 1 isa Config::JFDI/;
 sub _build__config {
     my $self = shift;
-    return Config::JFDI->new(path => $self->home_dir."", name => $self->name);
+    return Config::JFDI->new(path => $self->home_dir."", name => $self->redmash_meta->name);
 };
 sub config {
     return shift->_config->get;
@@ -38,6 +38,29 @@ sub cfg {
 
 sub testing {
     return shift->config->{testing} ? 1 : 0;
+}
+
+has rsc => qw/is ro lazy_build 1 isa Path::Resource/;
+sub _build_rsc {
+    my $self = shift;
+    return Path::Resource->new(uri => $self->uri, dir => $self->run_root_dir);
+}
+
+# build_rsc { ... (Should return a hash or something)
+
+has uri => qw/is ro lazy_build 1 isa URI::PathAbstract/;
+sub _build_uri {
+    my $self = shift;
+    my $method = "build_uri";
+    croak "Don't have method \"$method\"" unless my $build = $self->can($method);
+    my $got = $build->($self, @_);
+
+    return $got if blessed $got && $got->isa("URI::PathAbstract");
+    return URI::PathAbstract->new($got);
+}
+
+sub build_uri {
+    return $_[0]->cfg->{uri};
 }
 
 has ui => qw/is ro lazy_build 1 isa Framework::Redmash::UI::Object/;

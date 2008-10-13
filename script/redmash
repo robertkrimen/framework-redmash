@@ -1,0 +1,7 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Framework::Redmash::App;
+Framework::Redmash::App->run;
