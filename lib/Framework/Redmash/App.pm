@@ -66,7 +66,8 @@ sub run {
 
                 my $redmash_file = redmash_file;
 
-                abort "File .redmash already exists" if -e $redmash_file;
+                # TODO Need some sort of check here (or warning)
+                # abort "File .redmash already exists" if -e $redmash_file;
 
                 $redmash_file->openw->print("$package");
 

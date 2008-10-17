@@ -39,7 +39,7 @@ sub configure {
     # Should extend from base class object class (::Object)
     # $self->for_class->meta->superclasses($base_class);
 
-    MooseX::ClassScaffold->load_class($base_class);
+    MooseX::Scaffold->load_class($base_class);
     $base_class->configure($self, \%given);
 
     $self->config_default($given{config_default}) if $given{config_default};

@@ -1,12 +1,36 @@
 NAME
-    Framework::Redmash -
+    Framework::Redmash - Framework for quickly setting up a webpage/website
+    using Template Toolkit
 
 VERSION
     Version 0.01
 
 SYNOPSIS
+        package MyProject;
+
+        use Framework::Redmash name => 'myproject';
+
+        # Then, from the commandline ...
+    
+        redmash setup
+        redmash about
+
+DESCRIPTION
+    This is beta!
+
+    Framework::Redmash is an attempt to take the drudgery out of setting up
+    a website. After you run 'setup' you should have a basic assets/
+    directory, including a standard frame .tt and some baseline .css
+
 AUTHOR
     Robert Krimen, "<rkrimen at cpan.org>"
+
+SOURCE
+    You can contribute or fork this project via GitHub:
+
+    <http://github.com/robertkrimen/PCK/tree/master>
+
+        git clone git://github.com/robertkrimen/PCK.git PCK
 
 BUGS
     Please report any bugs or feature requests to "bug-framework-redmash at

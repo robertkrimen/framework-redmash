@@ -25,6 +25,23 @@ _END_
 
     map { my ($pk, $vr) = split m/\s/; requires $pk => $vr || 0 } grep { ! /^\s*#/ } split m/\n/, <<_END_;
 Moose 0.58
+MooseX::Scaffold 0.02
+Carp::Clan::Share
+Class::Inspector
+Class::MOP
+Config::JFDI
+File::Copy
+File::Find
+File::Spec::Link
+Getopt::Chain
+MooseX::ClassAttribute
+MooseX::Types
+MooseX::Types::Moose
+MooseX::Types::Path::Class
+Path::Class
+Scalar::Util
+Template
+URI::PathAbstract
 _END_
 }
 

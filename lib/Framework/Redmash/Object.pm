@@ -1,6 +1,7 @@
 package Framework::Redmash::Object;
 
 use Moose;
+use MooseX::ClassAttribute;
 
 use Framework::Redmash::Carp;
 use Framework::Redmash::Types;
@@ -12,7 +13,7 @@ use File::Find;
 use Path::Class;
 use MooseX::ClassAttribute();
 use Class::Inspector;
-use MooseX::ClassScaffold;
+use MooseX::Scaffold;
 
 has home_dir => qw/is ro coerce 1 lazy_build 1/, isa => Dir;
 sub _build_home_dir {
@@ -68,7 +69,7 @@ sub _build_ui {
     my $self = shift;
     my $class = ref $self;
     my $ui_class = "${class}::UI";
-    MooseX::ClassScaffold->load_or_scaffold_class(scaffold_class => 'Framework::Redmash::UI', class => $ui_class);
+    MooseX::Scaffold->scaffold(scaffolder => 'Framework::Redmash::UI', class => $ui_class);
     return $ui_class->new(kit => $self);
 }
 

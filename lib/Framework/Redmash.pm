@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-Framework::Redmash -
+Framework::Redmash - Framework for quickly setting up a webpage/website using Template Toolkit
 
 =head1 VERSION
 
@@ -15,106 +15,54 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-use MooseX::ClassScaffold;
+=head1 SYNOPSIS
 
-Scaffold->setup_scaffolding_import;
+    package MyProject;
+
+    use Framework::Redmash name => 'myproject';
+
+    # Then, from the commandline ...
+    
+    redmash setup
+    redmash about
+
+=head1 DESCRIPTION
+
+This is beta!
+
+Framework::Redmash is an attempt to take the drudgery out of setting up a website. After you run 'setup' you should have
+a basic assets/ directory, including a standard frame .tt and some baseline .css
+
+=cut
+
+use MooseX::Scaffold;
+MooseX::Scaffold->setup_scaffolding_import;
 
 use Framework::Redmash::Meta;
 
 sub SCAFFOLD {
-    my $self = shift;
-    my $meta = shift;
+    my $class = shift;
 
-    Scaffold->extends($meta => 'Framework::Redmash::Object');
-    Scaffold->class_has($meta => redmash_meta => qw/is ro isa Framework::Redmash::Meta/, default => sub {
-        return Framework::Redmash::Meta->new(kit_class => $meta->name);
+    $class->extends('Framework::Redmash::Object');
+
+    $class->class_has(redmash_meta => qw/is ro isa Framework::Redmash::Meta/, default => sub {
+        return Framework::Redmash::Meta->new(kit_class => $class->name);
     });
 
-    $meta->name->redmash_meta->configure(@_);
-#    my $redmash_meta = shift;
-#    my %given = @_;
-
-#    $redmash_meta->config_default($given{config_default}) if $given{config_default};
+    $class->name->redmash_meta->configure(@_);
 }
-
-__END__
-#use MooseX::ClassAttribute();
-#use Moose::Exporter;
-#my ($import, $export) = Moose::Exporter->build_import_methods(
-#    with_caller => [],
-#);
-
-#sub import {
-#    my $CALLER = Moose::Exporter::_get_caller(@_);
-#    my $self = shift;
-#    my $class = __PACKAGE__;
-
-#    if ( $CALLER eq 'main' ) {
-#        warn
-#            qq{$class does not export its sugar to the 'main' package.\n};
-#        return;
-#    }
-
-#    $class->setup_class($CALLER, @_);
-
-#    @_ = ($_[0]);
-#    goto $import;
-#}
-
-#sub init_meta {
-#    # Empty for a reason (setup_class does the work)
-#}
-
-#sub setup_class {
-#    my $self = shift;
-#    my $for_class = shift;
-#    my %given = @_;
-
-#    Moose->init_meta(for_class => $for_class);
-
-#    Moose::Util::MetaRole::apply_metaclass_roles(
-#        for_class => $for_class,
-#        metaclass_roles => [ 'MooseX::ClassAttribute::Role::Meta::Class' ],
-#    );
-#    Class::MOP::Class
-#            ->initialize($for_class)
-#            ->add_class_attribute(
-#                redmash_meta => qw/is ro isa Framework::Redmash::Meta/, default => sub {
-#                    return Framework::Redmash::Meta->new(for_class => $for_class);
-#                },
-#            );
-
-#    $for_class->redmash_meta->initialize(@_);
-#}
-
-#my ($import, $export) = Moose::Exporter->setup_import_methods;
-my ($import, $export) = Moose::Exporter->build_import_methods;
-
-sub import {
-    my $for_class = Moose::Exporter::_get_caller(@_);
-
-#    my $class = shift;
-#    warn $class;
-warn $for_class;
-    goto &$import;
-    die;
-}
-
-*unimport = $export;
-
-sub init_meta {
-    my $self = shift;
-    warn "@_";
-    return Moose->init_meta( @_, baseclass => 'Framework::Redmash::Object' );
-}
-
-
-=head1 SYNOPSIS
-
 
 =head1 AUTHOR
 
 Robert Krimen, C<< <rkrimen at cpan.org> >>
+
+=head1 SOURCE
+
+You can contribute or fork this project via GitHub:
+
+L<http://github.com/robertkrimen/PCK/tree/master>
+
+    git clone git://github.com/robertkrimen/PCK.git PCK
 
 =head1 BUGS
 

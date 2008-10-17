@@ -3,21 +3,19 @@ package Framework::Redmash::UI;
 use warnings;
 use strict;
 
-use MooseX::ClassScaffold;
-
-Scaffold->setup_scaffolding_import;
+use MooseX::Scaffold;
+MooseX::Scaffold->setup_scaffolding_import;
 
 sub SCAFFOLD {
-    my $self = shift;
-    my $meta = shift;
+    my $class = shift;
     my %given = @_;
 
-    my $kit_class = Scaffold->repackage($meta->name, undef, 1);
+    my $kit_class = MooseX::Scaffold->repackage($class->name, undef, 1);
 
-    Scaffold->extends($meta => 'Framework::Redmash::UI::Object');
-    Scaffold->has($meta => kit => qw/is ro required 1/, isa => $kit_class);
+    $class->extends('Framework::Redmash::UI::Object');
+    $class->has(kit => qw/is ro required 1/, isa => $kit_class);
 
-    $meta->add_method($kit_class->redmash_meta->name => sub {
+    $class->meta->add_method($kit_class->redmash_meta->name => sub {
         return $_[0]->kit;
     });
 
