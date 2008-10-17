@@ -2,7 +2,7 @@ package Framework::Redmash::Base::Bare;
 
 use Moose;
 
-sub configure {
+sub initialize {
     # Do nothing, it is bare after all
 }
 

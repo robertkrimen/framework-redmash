@@ -15,6 +15,15 @@ use MooseX::ClassAttribute();
 use Class::Inspector;
 use MooseX::Scaffold;
 
+has configuration => qw/is ro lazy_build 1/;
+sub _configuration {
+    return shift->redmash_meta->configuration;
+}
+sub configure {
+    my $self = shift;
+    return $self->configuration;
+}
+
 has home_dir => qw/is ro coerce 1 lazy_build 1/, isa => Dir;
 sub _build_home_dir {
     return Path::Class::Dir->new("./")->absolute;

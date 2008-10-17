@@ -2,14 +2,15 @@ package Framework::Redmash::Base::Standard;
 
 use Moose;
 
-sub configure {
+sub initialize {
     my $self = shift;
+    my $configure = shift;
     my $redmash_meta = shift;
     my $given = shift;
 
-    my $name = $redmash_meta->name;
+    my $name = $configure->name;
 
-    $redmash_meta->manifest->include(<<_END_);
+    $configure->manifest->include(<<_END_);
 run
 run/root
 run/tmp
@@ -21,7 +22,7 @@ assets/root/static/js
 assets/tt
 _END_
 
-    $redmash_meta->manifest->include(
+    $configure->manifest->include(
         "assets/root/static/css/$name.css" => {
             content => <<_END_
 body, table {

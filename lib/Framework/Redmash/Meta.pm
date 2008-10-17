@@ -1,11 +1,10 @@
 package Framework::Redmash::Meta;
 
 use Moose;
-
 use Framework::Redmash::Carp;
 use Framework::Redmash::Types;
 
-use Framework::Redmash::Manifest;
+use Framework::Redmash::Configuration;
 
 has kit_class => qw/is ro required 1 isa Str/;
 sub kit_meta {
@@ -15,21 +14,25 @@ sub kit_meta {
 has base => qw/is rw isa Str/;
 has base_class => qw/is rw isa Str/;
 
-has name => qw/is rw isa Str/;
-
-has config_default => qw/is ro isa Maybe[HashRef]/;
-has manifest => qw/is ro isa Framework::Redmash::Manifest/, default => sub {
-    return Framework::Redmash::Manifest->new;
-};
+has configuration => qw/is ro lazy_build 1/, handles => [qw/ name config_default manifest /];
+sub _build_configuration {
+    my $self = shift;
+    return Framework::Redmash::Configuration->new;
+}
 
 sub configure {
+    my $self = shift;
+    return $self->configuration;
+}
+
+sub bootstrap {
     my $self = shift;
     my %given = @_;
 
     my $kit_class = $self->kit_class;
 
     my $name = $given{name} or croak "Wasn't given name (when creating $kit_class)";
-    $self->name($name);
+    $self->configuration->name($name);
 
     my $base = $given{base} ||= 'Standard';
     $self->base($base);
@@ -40,16 +43,25 @@ sub configure {
     # $self->for_class->meta->superclasses($base_class);
 
     MooseX::Scaffold->load_class($base_class);
-    $base_class->configure($self, \%given);
+    $base_class->initialize($self->configuration, $self, \%given);
 
-    $self->config_default($given{config_default}) if $given{config_default};
-
-    if (my $manifest = $given{manifest}) {
-        my @manifest = ref $manifest eq 'ARRAY' ? @$manifest : ($manifest);
-        $self->manifest->include(@manifest);
-    }
+    $self->initialize($self->configuration, $self, \%given);
 
     $self->finalize;
+}
+
+sub initialize {
+    my $self = shift;
+    my $configure = shift;
+    my $redmash_meta = shift;
+    my $given = shift;
+
+    $configure->config_default($given->{config_default}) if $given->{config_default};
+
+    if (my $manifest = $given->{manifest}) {
+        my @manifest = ref $manifest eq 'ARRAY' ? @$manifest : ($manifest);
+        $configure->manifest->include(@manifest);
+    }
 }
 
 sub finalize {

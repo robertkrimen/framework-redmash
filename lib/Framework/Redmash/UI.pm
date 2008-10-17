@@ -15,7 +15,7 @@ sub SCAFFOLD {
     $class->extends('Framework::Redmash::UI::Object');
     $class->has(kit => qw/is ro required 1/, isa => $kit_class);
 
-    $class->meta->add_method($kit_class->redmash_meta->name => sub {
+    $class->meta->add_method($kit_class->redmash_meta->configuration->name => sub {
         return $_[0]->kit;
     });
 

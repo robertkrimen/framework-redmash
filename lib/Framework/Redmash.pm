@@ -49,7 +49,7 @@ sub SCAFFOLD {
         return Framework::Redmash::Meta->new(kit_class => $class->name);
     });
 
-    $class->name->redmash_meta->configure(@_);
+    $class->name->redmash_meta->bootstrap(@_);
 }
 
 =head1 AUTHOR
