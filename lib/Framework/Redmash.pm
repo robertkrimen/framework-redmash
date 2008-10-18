@@ -43,7 +43,7 @@ use Framework::Redmash::Meta;
 sub SCAFFOLD {
     my $class = shift;
 
-    $class->extends('Framework::Redmash::Object');
+    $class->extends('Framework::Redmash::Kit');
 
     $class->class_has(redmash_meta => qw/is ro isa Framework::Redmash::Meta/, default => sub {
         return Framework::Redmash::Meta->new(kit_class => $class->name);

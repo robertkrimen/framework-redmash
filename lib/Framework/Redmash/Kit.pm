@@ -1,4 +1,4 @@
-package Framework::Redmash::Object;
+package Framework::Redmash::Kit;
 
 use Moose;
 use MooseX::ClassAttribute;
