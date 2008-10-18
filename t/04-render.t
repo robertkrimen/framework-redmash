@@ -9,6 +9,8 @@ use Framework::Redmash::Manifest;
 
 plan qw/no_plan/;
 
+ok(1);
+
 {
     my $manifest = Framework::Redmash::Manifest->new;
     $manifest->include(<<_END_);
@@ -58,3 +60,4 @@ _END_
     is($manifest->file->{'assets/root/static/css/example.css'}->content, '/* Some css */');
     is($manifest->file->{'assets/root/static/js/example.js'}->comment, 'This is a .js file');
 }
+

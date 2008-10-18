@@ -16,7 +16,7 @@ use Class::Inspector;
 use MooseX::Scaffold;
 
 has configuration => qw/is ro lazy_build 1/;
-sub _configuration {
+sub _build_configuration {
     return shift->redmash_meta->configuration;
 }
 sub configure {
