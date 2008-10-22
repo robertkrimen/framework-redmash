@@ -171,46 +171,82 @@ sub publish {
 
 sub render {
     my $self = shift;
-    my $given = shift;
 
-    if (ref $given eq 'ARRAY') {
-        my @result;
-        for (@$given) {
-            push @result, $self->render($_);
-        }
-        return @result;
-    }
-    elsif ($given =~ m/\n/) {
-        $given = $fixer->eol_to_unix($given);
-        my @result;
-        for (split m/\n/, $given) {
-            chomp;
-            next if m/^\s*$/ || m/^\s*#/;
-            s/^\s*//, s/\s*$// for $_;
-            push @result, $self->render($_);
-        }
-        return @result;
+    if (@_ > 1) {
+        $self->_render(@_);
     }
     else {
-        my $path = $given;
+        my $given = shift;
 
-        my $context = Framework::Redmash::Context->new(kit => $self, path => $path);
-
-        my $match = $self->finder->find($path);
-        croak "Didn't find anything for path $path" unless $match;
-
-        my $action = $match->slot('render')->first->content;
-
-        if (ref $action eq 'CODE') {
-            return $action->($context);
+        if (ref $given eq 'ARRAY') {
+            my @result;
+            for (@$given) {
+                push @result, $self->render($_);
+            }
+            return @result;
         }
-        elsif ($action eq 'render:TT') {
-            return Framework::Redmash::Render::TT->render($context);
+        elsif ($given =~ m/\n/) {
+            $given = $fixer->eol_to_unix($given);
+            my @result;
+            for (split m/\n/, $given) {
+                chomp;
+                next if m/^\s*$/ || m/^\s*#/;
+                s/^\s*//, s/\s*$// for $_;
+                push @result, $self->render($_);
+            }
+            return @result;
         }
         else {
-            croak "Don't understand action $action";
+            my $path = $given;
+
+            my $context = Framework::Redmash::Context->new(kit => $self, path => $path);
+
+            my $match = $self->finder->find($path);
+            croak "Didn't find anything for path $path" unless $match;
+
+            my $action = $match->slot('render')->first->content;
+
+            if (ref $action eq 'CODE') {
+                return $action->($context);
+            }
+            elsif ($action eq 'render:TT') {
+                return Framework::Redmash::Render::TT->render($context);
+            }
+            else {
+                croak "Don't understand action $action";
+            }
         }
     }
+}
+
+sub _render {
+    my $self = shift;
+    my %given = @_;
+
+    $given{force} = 1 if ! exists $given{force} && $self->testing;
+
+    my $input = $given{template} || $given{input} or croak "Wasn't given a template";
+    my $context = $given{context} || {};
+
+    return $self->_render_rsc(%given, build => sub {
+        my $rsc = shift;
+        $self->tt->process(input => $input, output => $rsc, context => $context);
+    });
+}
+
+sub _render_rsc {
+    my $self = shift;
+    my %given = @_;
+
+    my $rsc = $given{rsc} or croak "Wasn't given resource";
+    $rsc = $self->rsc->child($rsc) unless blessed $rsc;
+    my $build = $given{build} or croak "Wasn't given build CODE";
+
+    if ($given{force} || ! -f $rsc->file || ! -s _) {
+        $build->($rsc);
+    }
+
+    return $rsc;
 }
 
 has _maker => qw/is ro lazy_build 1 isa Framework::Redmash::Maker/, handles => [qw/ make maker /];
