@@ -2,26 +2,35 @@ package Framework::Redmash::Kit;
 
 use Moose;
 use MooseX::ClassAttribute;
-
 use Framework::Redmash::Carp;
 use Framework::Redmash::Types;
 
+use Framework::Redmash::TT;
+use Framework::Redmash::Context;
+use Framework::Redmash::Render::TT;
+
 use Config::JFDI;
 use File::Copy;
+use Path::Resource;
 use File::Spec::Link;
 use File::Find;
 use Path::Class;
 use MooseX::ClassAttribute();
 use Class::Inspector;
 use MooseX::Scaffold;
+use Path::Finder;
+use Text::FixEOL;
+my $fixer = Text::FixEOL->new;
 
-has configuration => qw/is ro lazy_build 1/;
-sub _build_configuration {
-    return shift->redmash_meta->configuration;
-}
-sub configure {
+sub BUILD {
     my $self = shift;
-    return $self->configuration;
+    $self->redmash_meta->configure->build($self, $self->configure);
+}
+
+has configure => qw/is ro lazy_build 1 isa Framework::Redmash::Configure::Kit/;
+sub _build_configure {
+    my $self = shift;
+    return $self->make('Configure::Kit', kit => $self);
 }
 
 has home_dir => qw/is ro coerce 1 lazy_build 1/, isa => Dir;
@@ -73,13 +82,22 @@ sub build_uri {
     return $_[0]->cfg->{uri};
 }
 
-has ui => qw/is ro lazy_build 1 isa Framework::Redmash::UI::Object/;
-sub _build_ui {
+has tt => qw/is ro lazy_build 1 isa Framework::Redmash::TT/;
+sub _build_tt {
     my $self = shift;
-    my $class = ref $self;
-    my $ui_class = "${class}::UI";
-    MooseX::Scaffold->scaffold(scaffolder => 'Framework::Redmash::UI', class => $ui_class);
-    return $ui_class->new(kit => $self);
+    return $self->make('TT', kit => $self);
+}
+
+has interface => qw/is ro lazy_build 1 isa Framework::Redmash::Interface/;
+sub _build_interface {
+    my $self = shift;
+    return $self->make('Interface', kit => $self);
+}
+
+has finder => qw/is ro lazy_build 1 isa Path::Finder/;
+sub _build_finder {
+    my $self = shift;
+    return Path::Finder->new;
 }
 
 sub publish_dir {
@@ -149,6 +167,56 @@ sub publish {
         $from = file($from)->absolute;
         symlink $from, $to or warn "Couldn't symlink($from, $to): $!";
     }
+}
+
+sub render {
+    my $self = shift;
+    my $given = shift;
+
+    if (ref $given eq 'ARRAY') {
+        my @result;
+        for (@$given) {
+            push @result, $self->render($_);
+        }
+        return @result;
+    }
+    elsif ($given =~ m/\n/) {
+        $given = $fixer->eol_to_unix($given);
+        my @result;
+        for (split m/\n/, $given) {
+            chomp;
+            next if m/^\s*$/ || m/^\s*#/;
+            s/^\s*//, s/\s*$// for $_;
+            push @result, $self->render($_);
+        }
+        return @result;
+    }
+    else {
+        my $path = $given;
+
+        my $context = Framework::Redmash::Context->new(kit => $self, path => $path);
+
+        my $match = $self->finder->find($path);
+        croak "Didn't find anything for path $path" unless $match;
+
+        my $action = $match->slot('render')->first->content;
+
+        if (ref $action eq 'CODE') {
+            return $action->($context);
+        }
+        elsif ($action eq 'render:TT') {
+            return Framework::Redmash::Render::TT->render($context);
+        }
+        else {
+            croak "Don't understand action $action";
+        }
+    }
+}
+
+has _maker => qw/is ro lazy_build 1 isa Framework::Redmash::Maker/, handles => [qw/ make maker /];
+sub _build__maker {
+    my $self = shift;
+    return Framework::Redmash::Maker->new(redmash_meta => $self->redmash_meta);
 }
 
 1;

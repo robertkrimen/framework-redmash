@@ -4,7 +4,8 @@ use Moose;
 use Framework::Redmash::Carp;
 use Framework::Redmash::Types;
 
-use Framework::Redmash::Configuration;
+use Framework::Redmash::Configure::Meta;
+use Framework::Redmash::Maker;
 
 has kit_class => qw/is ro required 1 isa Str/;
 sub kit_meta {
@@ -14,15 +15,10 @@ sub kit_meta {
 has base => qw/is rw isa Str/;
 has base_class => qw/is rw isa Str/;
 
-has configuration => qw/is ro lazy_build 1/, handles => [qw/ name config_default manifest /];
-sub _build_configuration {
+has configure => qw/is ro lazy_build 1/, handles => [qw/ name config_default manifest /];
+sub _build_configure {
     my $self = shift;
-    return Framework::Redmash::Configuration->new;
-}
-
-sub configure {
-    my $self = shift;
-    return $self->configuration;
+    return Framework::Redmash::Configure::Meta->new(redmash_meta => $self);
 }
 
 sub bootstrap {
@@ -32,7 +28,7 @@ sub bootstrap {
     my $kit_class = $self->kit_class;
 
     my $name = $given{name} or croak "Wasn't given name (when creating $kit_class)";
-    $self->configuration->name($name);
+    $self->configure->name($name);
 
     my $base = $given{base} ||= 'Standard';
     $self->base($base);
@@ -43,9 +39,9 @@ sub bootstrap {
     # $self->for_class->meta->superclasses($base_class);
 
     MooseX::Scaffold->load_class($base_class);
-    $base_class->initialize($self->configuration, $self, \%given);
+    $base_class->initialize($self->configure, $self, \%given);
 
-    $self->initialize($self->configuration, $self, \%given);
+    $self->initialize($self->configure, $self, \%given);
 
     $self->finalize;
 }

@@ -96,8 +96,14 @@ _END_
 _END_
 
         },
+
     );
 
+    $configure->builder(sub {
+        my $kit = shift;
+        my $configure = shift;
+        $configure->render_target(match => qr/.*/, content => 'render:TT');
+    });
 }
 
 1;

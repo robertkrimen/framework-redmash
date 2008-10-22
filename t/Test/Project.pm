@@ -8,4 +8,8 @@ use Framework::Redmash qw/name test/;
 
 #__PACKAGE__->redmash_meta->configure->render->add(name => 'home');
 
+package t::Test::Project::Alpha;
+
+use Moose;
+
 1;
