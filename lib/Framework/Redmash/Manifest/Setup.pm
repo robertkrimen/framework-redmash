@@ -1,4 +1,4 @@
-package Framework::Redmash::Manifest;
+package Framework::Redmash::Manifest::Setup;
 
 use Moose;
 
@@ -7,7 +7,7 @@ has _files => qw/is ro required 1/, default => sub { {} };
 sub _file {
     my $self = shift;
     return $_[0] if @_ == 1 && blessed $_[0];
-    return Framework::Redmash::Manifest::File->new(@_);
+    return Framework::Redmash::Manifest::Setup::File->new(@_);
 }
 
 sub files {
@@ -66,12 +66,25 @@ sub _include_list {
     }
 }
 
-package Framework::Redmash::Manifest::File;
+sub copy_into {
+    my $self = shift;
+    my $setup_manifest = shift;
+    $self->each(sub {
+        $setup_manifest->add(shift->copy);
+    });
+}
+
+package Framework::Redmash::Manifest::Setup::File;
 
 use Moose;
 
 has path => qw/is ro required 1/;
 has comment => qw/is ro isa Maybe[Str]/;
 has content => qw/is ro isa Maybe[Str]/;
+
+sub copy {
+    my $self = shift;
+    return (ref $self)->new(map { $_ => $self->$_ } qw/path comment content/);
+}
 
 1;

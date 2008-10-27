@@ -10,7 +10,7 @@ sub initialize {
 
     my $name = $configure->name;
 
-    $configure->manifest->include(<<_END_);
+    $configure->setup_manifest->include(<<_END_);
 run
 run/root
 run/tmp
@@ -22,7 +22,7 @@ assets/root/static/js
 assets/tt
 _END_
 
-    $configure->manifest->include(
+    $configure->setup_manifest->include(
         "assets/root/static/css/$name.css" => {
             content => <<_END_
 body, table {
@@ -99,10 +99,17 @@ _END_
 
     );
 
-    $configure->builder(sub {
+    my $render_manifest = $given->{render_manifest};
+
+    $configure->build(sub {
         my $kit = shift;
         my $configure = shift;
+
+        if ($render_manifest) {
+            $kit->render_manifest->include($render_manifest);
+        }
         $configure->render_target(match => qr/.*/, content => 'render:TT');
+
     });
 }
 

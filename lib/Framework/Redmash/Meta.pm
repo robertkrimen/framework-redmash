@@ -15,10 +15,25 @@ sub kit_meta {
 has base => qw/is rw isa Str/;
 has base_class => qw/is rw isa Str/;
 
-has configure => qw/is ro lazy_build 1/, handles => [qw/ name config_default manifest /];
+has configure => qw/is ro lazy_build 1/, handles => [qw/ config_default /];
 sub _build_configure {
     my $self = shift;
     return Framework::Redmash::Configure::Meta->new(redmash_meta => $self);
+}
+
+has name => qw/is rw isa Str/;
+
+has setup_manifest => qw/is ro isa Framework::Redmash::Manifest::Setup/, default => sub {
+    return Framework::Redmash::Manifest::Setup->new;
+};
+
+sub BUILD_kit {
+    my $self = shift;
+    my $kit = shift;
+    $self->setup_manifest->copy_into($kit->setup_manifest);
+    for my $builder ($self->configure->build_list) {
+        $builder->($kit, $kit->configure);
+    }
 }
 
 sub bootstrap {
@@ -54,9 +69,9 @@ sub initialize {
 
     $configure->config_default($given->{config_default}) if $given->{config_default};
 
-    if (my $manifest = $given->{manifest}) {
-        my @manifest = ref $manifest eq 'ARRAY' ? @$manifest : ($manifest);
-        $configure->manifest->include(@manifest);
+    if (my $setup_manifest = $given->{setup_manifest}) {
+        my @setup_manifest = ref $setup_manifest eq 'ARRAY' ? @$setup_manifest : ($setup_manifest);
+        $configure->setup_manifest->include(@setup_manifest);
     }
 }
 
@@ -65,7 +80,7 @@ sub finalize {
 
     $self->finalize_config_default;
 
-    $self->finalize_manifest;
+    $self->finalize_setup_manifest;
 }
 
 sub finalize_config_default {
@@ -87,13 +102,13 @@ sub finalize_config_default {
     $self->kit_meta->override(_build_config_default => $code);
 }
 
-sub finalize_manifest {
+sub finalize_setup_manifest {
     my $self = shift;
 
     my $meta = $self->kit_meta;
     my $class = $self->kit_class;
 
-    $self->manifest->each(sub {
+    $self->setup_manifest->each(sub {
         my $file = shift;
         my $path = $file->path;
         my @path = split m/\//, $path;

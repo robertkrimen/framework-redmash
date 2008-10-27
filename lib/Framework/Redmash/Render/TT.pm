@@ -26,13 +26,19 @@ my $map_path_to_tt = sub {
 
 my $map_context_to_input = sub {
     my $context = shift;
+    my $arguments = shift;
+    return $context->stash->{template_input} if $context->stash->{template_input};
     return $context->stash->{template} if $context->stash->{template};
+    return $arguments->{template_input} if $arguments->{template_input};
+    return $arguments->{template} if $arguments->{template};
     return $map_path_to_tt->($context);
 };
 
 my $map_context_to_output = sub {
     my $context = shift;
-    return $context->stash->{output} if $context->stash->{output};
+    my $arguments = shift;
+    return $context->stash->{template_output} if $context->stash->{template_output};
+    return $arguments->{template_output} if $arguments->{template_output};
     my $path = $map_path_to_tt->($context);
     $path =~ s/\.tt(\.\w{1,4})$/$1/;
     return $context->kit->rsc->child($path);
@@ -41,9 +47,14 @@ my $map_context_to_output = sub {
 sub render {
     my $self = shift;
     my $context = shift;
+    my $arguments = shift || {};
 
-    my $input = $map_context_to_input->($context);
-    my $output = $map_context_to_output->($context);
+    if (ref $arguments eq '') {
+        $arguments = { template_input => $arguments };
+    }
+
+    my $input = $map_context_to_input->($context, $arguments);
+    my $output = $map_context_to_output->($context, $arguments);
 
     my $file;
     if ($output->can('file')) {

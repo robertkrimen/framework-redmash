@@ -4,10 +4,64 @@ use strict;
 use warnings;
 
 use Test::Most;
-
-use Framework::Redmash::Manifest;
+use Directory::Scratch;
 
 plan qw/no_plan/;
+
+use t::Test::Project;
+
+my $kit = t::Test::Project->new;
+my $scratch = Directory::Scratch->new;
+$kit->assets_dir('t/assets');
+$kit->run_dir($scratch->base);
+
+sub ok_render {
+    my $path = shift;
+    ok(my $rsc = $kit->render($path));
+    ok(-s $rsc->file);
+    is(scalar $rsc->file->slurp, "$path\n");
+}
+
+ok_render('/');
+ok_render('a');
+ok_render('/b');
+ok_render('c.html');
+ok_render('d/');
+ok_render('/e/');
+
+is(scalar $kit->render(<<_END_), 6);
+# Ignore this ...
+/
+a
+    # ... and this
+/b
+c
+    d/
+/e/
+_END_
+
+$kit->config->{testing} = 0;
+
+my $rsc = $kit->render('a');
+my $mtime = $rsc->file->stat->mtime;
+
+sleep 1.5;
+
+$rsc = $kit->render('a');
+is($rsc->file->stat->mtime, $mtime);
+
+$kit->config->{testing} = 1;
+
+$rsc = $kit->render('a');
+isnt($rsc->file->stat->mtime, $mtime);
+
+{
+    $kit->render_manifest->add(path => '/', content => 'this.tt.html');
+    $rsc = $kit->render('/');
+    is(scalar $rsc->file->slurp, "This is this\n");
+}
+
+__END__
 
 {
     my $manifest = Framework::Redmash::Manifest->new;
@@ -58,3 +112,4 @@ _END_
     is($manifest->file->{'assets/root/static/css/example.css'}->content, '/* Some css */');
     is($manifest->file->{'assets/root/static/js/example.js'}->comment, 'This is a .js file');
 }
+

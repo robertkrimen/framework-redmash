@@ -5,6 +5,8 @@ use MooseX::ClassAttribute;
 use Framework::Redmash::Carp;
 use Framework::Redmash::Types;
 
+use Framework::Redmash::Manifest::Setup;
+use Framework::Redmash::Manifest::Render;
 use Framework::Redmash::TT;
 use Framework::Redmash::Context;
 use Framework::Redmash::Render::TT;
@@ -24,7 +26,7 @@ my $fixer = Text::FixEOL->new;
 
 sub BUILD {
     my $self = shift;
-    $self->redmash_meta->configure->build($self, $self->configure);
+    $self->redmash_meta->BUILD_kit($self);
 }
 
 has configure => qw/is ro lazy_build 1 isa Framework::Redmash::Configure::Kit/;
@@ -32,6 +34,14 @@ sub _build_configure {
     my $self = shift;
     return $self->make('Configure::Kit', kit => $self);
 }
+
+has setup_manifest => qw/is ro isa Framework::Redmash::Manifest::Setup/, default => sub {
+    return Framework::Redmash::Manifest::Setup->new;
+};
+
+has render_manifest => qw/is ro isa Framework::Redmash::Manifest::Render/, default => sub {
+    return Framework::Redmash::Manifest::Render->new;
+};
 
 has home_dir => qw/is ro coerce 1 lazy_build 1/, isa => Dir;
 sub _build_home_dir {
@@ -176,6 +186,14 @@ sub render {
         $self->_render(@_);
     }
     else {
+
+        if (! @_) {
+            $self->render_manifest->each(sub {
+                $self->render(shift->path);
+            });
+            return;
+        }
+
         my $given = shift;
 
         if (ref $given eq 'ARRAY') {
@@ -201,16 +219,23 @@ sub render {
 
             my $context = Framework::Redmash::Context->new(kit => $self, path => $path);
 
+            my $arguments;
+            {
+                if (my $entry = $self->render_manifest->entry($path)) {
+                    $arguments = $entry->content if $entry->content;
+                }
+            }
+
             my $match = $self->finder->find($path);
             croak "Didn't find anything for path $path" unless $match;
 
             my $action = $match->slot('render')->first->content;
 
             if (ref $action eq 'CODE') {
-                return $action->($context);
+                return $action->($context, $arguments);
             }
             elsif ($action eq 'render:TT') {
-                return Framework::Redmash::Render::TT->render($context);
+                return Framework::Redmash::Render::TT->render($context, $arguments);
             }
             else {
                 croak "Don't understand action $action";

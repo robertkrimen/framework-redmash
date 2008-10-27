@@ -74,8 +74,8 @@ sub run {
                 eval "require $package;" or abort "Unable to load $package since: $@";
                 my $redmash_meta = $package->redmash_meta;
 
-                my $manifest = $redmash_meta->manifest;
-                $manifest->each(sub {
+                my $setup_manifest = $redmash_meta->setup_manifest;
+                $setup_manifest->each(sub {
                     my $file = shift;
                     my $home_file = home->file($file->path);
                     return if -e $home_file;
@@ -110,9 +110,9 @@ sub run {
 
                 report "base = ", $redmash_meta->base;
 
-                report "manifest =";
-                my $manifest = $redmash_meta->manifest;
-                $manifest->each(sub {
+                report "setup_manifest =";
+                my $setup_manifest = $redmash_meta->setup_manifest;
+                $setup_manifest->each(sub {
                     my $file = shift;
                     report "\t", $file->path, (defined $file->comment ? (' # ', $file->comment) : ());
                 });
