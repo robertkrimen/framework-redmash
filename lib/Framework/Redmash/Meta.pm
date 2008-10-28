@@ -54,14 +54,14 @@ sub bootstrap {
     # $self->for_class->meta->superclasses($base_class);
 
     MooseX::Scaffold->load_class($base_class);
-    $base_class->initialize($self->configure, $self, \%given);
+    $base_class->PREPARE_kit($self->configure, $self, \%given);
 
-    $self->initialize($self->configure, $self, \%given);
+    $self->PREPARE_kit($self->configure, $self, \%given);
 
-    $self->finalize;
+    $self->PREPARE_kit_finalize;
 }
 
-sub initialize {
+sub PREPARE_kit {
     my $self = shift;
     my $configure = shift;
     my $redmash_meta = shift;
@@ -75,7 +75,7 @@ sub initialize {
     }
 }
 
-sub finalize {
+sub PREPARE_kit_finalize {
     my $self = shift;
 
     $self->finalize_config_default;

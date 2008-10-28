@@ -2,7 +2,7 @@ package Framework::Redmash::Base::Standard;
 
 use Moose;
 
-sub initialize {
+sub PREPARE_kit {
     my $self = shift;
     my $configure = shift;
     my $redmash_meta = shift;
