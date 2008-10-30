@@ -12,8 +12,8 @@ sub kit_meta {
     return shift->kit_class->meta;
 }
 
-has base => qw/is rw isa Str/;
-has base_class => qw/is rw isa Str/;
+#has base => qw/is rw isa Str/;
+#has base_class => qw/is rw isa Str/;
 
 has configure => qw/is ro lazy_build 1/, handles => [qw/ config_default /];
 sub _build_configure {
@@ -45,16 +45,47 @@ sub bootstrap {
     my $name = $given{name} or croak "Wasn't given name (when creating $kit_class)";
     $self->configure->name($name);
 
-    my $base = $given{base} ||= 'Standard';
-    $self->base($base);
-    my $base_class = "Framework::Redmash::Base::$base";
-    $self->base_class($base_class);
+#    my $base = $given{base} ||= 'Standard';
+#    $self->base($base);
+#    my $base_class = "Framework::Redmash::Base::$base";
+#    $self->base_class($base_class);
 
-    # Should extend from base class object class (::Object)
-    # $self->for_class->meta->superclasses($base_class);
+#    # Should extend from base class object class (::Object)
+#    # $self->for_class->meta->superclasses($base_class);
 
-    MooseX::Scaffold->load_class($base_class);
-    $base_class->PREPARE_kit($self->configure, $self, \%given);
+    my $plug = $given{plug} || $given{plugin};
+    $plug = [] unless defined $plug;
+    $plug = [ $plug ] unless ref $plug eq 'ARRAY';
+    my @plug = @$plug;
+    if (@plug) {
+        if ($plug[0] eq '-bare') {
+            shift @plug;
+        }
+        elsif ($plug[0] eq '-standard') {
+            shift @plug;
+            unshift @plug, qw/Standard/;
+        }
+        else {
+            unshift @plug, qw/Standard/;
+        }
+    }
+    else {
+        @plug = qw/Standard/;
+    }
+
+    while (@plug) {
+        my $plugin = shift @plug;
+        my $config;
+        $config = shift @plug if ref $config eq 'HASH';
+        my $plugin_class = $plugin;
+        unless ($plugin_class =~ s/^\+//) {
+            $plugin_class = "Framework::Redmash::Plugin::$plugin_class";
+            MooseX::Scaffold->load_class($plugin_class);
+            $plugin_class->PREPARE_kit($self->configure, $self, \%given, $config);
+        }
+    }
+#    MooseX::Scaffold->load_class($base_class);
+#    $base_class->PREPARE_kit($self->configure, $self, \%given);
 
     $self->PREPARE_kit($self->configure, $self, \%given);
 

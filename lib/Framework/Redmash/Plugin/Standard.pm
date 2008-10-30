@@ -1,4 +1,4 @@
-package Framework::Redmash::Base::Standard;
+package Framework::Redmash::Plugin::Standard;
 
 use Moose;
 
@@ -7,6 +7,7 @@ sub PREPARE_kit {
     my $configure = shift;
     my $redmash_meta = shift;
     my $given = shift;
+    my $config = shift;
 
     my $name = $configure->name;
 

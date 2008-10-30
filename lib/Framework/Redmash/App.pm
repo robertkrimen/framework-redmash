@@ -108,7 +108,7 @@ sub run {
                 eval "require $package;" or abort "Unable to load $package since: $@";
                 my $redmash_meta = $package->redmash_meta;
 
-                report "base = ", $redmash_meta->base;
+#                report "base = ", $redmash_meta->base;
 
                 report "setup_manifest =";
                 my $setup_manifest = $redmash_meta->setup_manifest;
