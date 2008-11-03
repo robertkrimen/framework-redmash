@@ -14,7 +14,7 @@ use Test::More;
 use Moose;
 use MooseX::ClassAttribute;
 use Framework::Redmash (
-    qw/plug Standard name test/
+    qw/plugin Standard name test/
 );
 
 ok(__PACKAGE__->redmash_meta);
