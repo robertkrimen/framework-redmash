@@ -35,6 +35,22 @@ sub package_filename {
     return Class::Inspector->resolved_filename(shift, '.');
 }
 
+sub discover {
+    my $redmash_file = redmash_file;
+
+    abort "File .redmash desn't exist (did you init?)" unless -e $redmash_file;
+
+    my $package = $redmash_file->slurp;
+    chomp $package;
+
+    abort "File .redmash does not contain a package name" unless $package; 
+
+    eval "require $package;" or abort "Unable to load $package since: $@";
+    my $redmash_meta = $package->redmash_meta;
+
+    return ($redmash_file, $package, $redmash_meta);
+}
+
 sub run {
     my $self = shift;
     {
@@ -89,26 +105,42 @@ sub run {
                     }
                 });
             },
+
+            build => sub {
+                my $ctx = shift;
+
+                my ($redmash_file, $package, $redmash_meta) = discover;
+
+                my $kit = $package->new;
+                $kit->{home_dir} = home;
+
+                $kit->do_build;
+            },
             
             about => sub {
                 my $ctx = shift;
 
-                my $redmash_file = redmash_file;
-
-                abort "File .redmash desn't exist (did you init?)" unless -e $redmash_file;
-
-                my $package = $redmash_file->slurp;
-                chomp $package;
-
-                abort "File .redmash does not contain a package name" unless $package; 
+                my ($redmash_file, $package, $redmash_meta) = discover;
 
                 report ".redmash = $redmash_file";
                 report "package = $package";
 
-                eval "require $package;" or abort "Unable to load $package since: $@";
-                my $redmash_meta = $package->redmash_meta;
+#                my $redmash_file = redmash_file;
 
-#                report "base = ", $redmash_meta->base;
+#                abort "File .redmash desn't exist (did you init?)" unless -e $redmash_file;
+
+#                my $package = $redmash_file->slurp;
+#                chomp $package;
+
+#                abort "File .redmash does not contain a package name" unless $package; 
+
+#                report ".redmash = $redmash_file";
+#                report "package = $package";
+
+#                eval "require $package;" or abort "Unable to load $package since: $@";
+#                my $redmash_meta = $package->redmash_meta;
+
+##                report "base = ", $redmash_meta->base;
 
                 report "setup_manifest =";
                 my $setup_manifest = $redmash_meta->setup_manifest;

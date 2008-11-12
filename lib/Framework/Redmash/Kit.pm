@@ -280,4 +280,28 @@ sub _build__maker {
     return Framework::Redmash::Maker->new(redmash_meta => $self->redmash_meta);
 }
 
+sub do_setup {
+    my $self = shift;
+    $self->setup;
+}
+
+sub setup {
+}
+
+sub do_build {
+    my $self = shift;
+    $self->build;
+}
+
+sub build {
+}
+
+sub do_update {
+    my $self = shift;
+    $self->update;
+}
+
+sub update {
+}
+
 1;
