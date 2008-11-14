@@ -12,9 +12,6 @@ sub kit_meta {
     return shift->kit_class->meta;
 }
 
-#has base => qw/is rw isa Str/;
-#has base_class => qw/is rw isa Str/;
-
 has configure => qw/is ro lazy_build 1/, handles => [qw/ config_default /];
 sub _build_configure {
     my $self = shift;
@@ -36,6 +33,7 @@ sub BUILD_kit {
     }
 }
 
+# Maybe this should be USE_kit, and plugin_class->USE_kit
 sub bootstrap {
     my $self = shift;
     my %given = @_;
@@ -44,14 +42,6 @@ sub bootstrap {
 
     my $name = $given{name} or croak "Wasn't given name (when creating $kit_class)";
     $self->configure->name($name);
-
-#    my $base = $given{base} ||= 'Standard';
-#    $self->base($base);
-#    my $base_class = "Framework::Redmash::Base::$base";
-#    $self->base_class($base_class);
-
-#    # Should extend from base class object class (::Object)
-#    # $self->for_class->meta->superclasses($base_class);
 
     my $plug = $given{plug} || $given{plugin};
     $plug = [] unless defined $plug;
@@ -84,8 +74,6 @@ sub bootstrap {
             $plugin_class->PREPARE_kit($self->configure, $self, \%given, $config);
         }
     }
-#    MooseX::Scaffold->load_class($base_class);
-#    $base_class->PREPARE_kit($self->configure, $self, \%given);
 
     $self->PREPARE_kit($self->configure, $self, \%given);
 
@@ -160,30 +148,5 @@ sub finalize_setup_manifest {
         }, @_);
     });
 }
-
-#sub _setup_kit_dir {
-#    my $self = shift;
-#    my $class = shift;
-#    my $manifest = shift;
-
-#    for my $path (sort grep { ! /^\s*#/ } split m/\n/, $manifest) {
-#        my @path = split m/\//, $path;
-#        my $last_dir = pop @path;
-
-#        my $dir = join "_", @path, $last_dir;
-#        my $parent_dir = @path ? join "_", @path : qw/home/;
-
-#        my $dir_method = "${dir}_dir";
-#        my $parent_dir_method = "${parent_dir}_dir";
-#        $dir_method =~ s/\W/_/g;
-#        $parent_dir_method =~ s/\W/_/g;
-
-#        next if $class->can($dir_method);
-
-#        $class->meta->add_attribute($dir_method => qw/is rw required 1 coerce 1 lazy 1/, isa => Dir, default => sub {
-#            return shift->$parent_dir_method->subdir($last_dir);
-#        }, @_);
-#    }
-#}
 
 1;

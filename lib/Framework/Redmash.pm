@@ -24,6 +24,7 @@ our $VERSION = '0.01';
     # Then, from the commandline ...
     
     redmash setup
+    redmash build
     redmash about
 
 =head1 DESCRIPTION
