@@ -1,0 +1,15 @@
+script/redmash
+
+    setup <package>         create .redmash containg Kit <package>, iterate through
+                            setup_manifest and create each file (unless it
+                            already exists)
+                        
+    build                   execute Kit->build (via Kit->do_build)
+
+    about                   report the location of the .redmash file, the Kit package,
+                            and the setup manifest
+
+
+TODO:
+
+bootstrap + PREPARE_kit -> USE_kit ?
